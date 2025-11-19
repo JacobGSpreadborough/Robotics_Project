@@ -1,25 +1,20 @@
 #ifndef MOTORHANDLER_h
 #define MOTORHANDLER_h
-#include <mbed.h>
+#include "motor.h"
 
-class motorHandler {
+class MotorHandler {
   public:
-    motorHandler(PinName dirA, PinName speedA, PinName dirB, PinName speedB);
+    motor motorA;
+    motor motorB;
+    MotorHandler(PinName dirA, PinName PWMA, PinName dirB, PinName PWMB);
     long long encoderCountA;
     long long revCountA;
     long long encoderCountB;
     long long revCountB;
-    mbed::DigitalOut dirA;
-    mbed::PwmOut speedA;
-    mbed::DigitalOut dirB;
-    mbed::PwmOut speedB;
     void init();
     void incrementEncoderA();
     void incrementEncoderB();
-    void turn(double angle);
-    void move(double speed);
-    void left(double speed);
-    void right(double speed);
+    void move(double speed, double turn);
 };
 
 #endif

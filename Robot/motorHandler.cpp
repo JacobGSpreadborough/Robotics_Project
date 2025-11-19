@@ -1,53 +1,45 @@
 #include "motorHandler.h"
 
-motorHandler::motorHandler(PinName dirA, PinName speedA, PinName dirB, PinName speedB):
-   dirA(dirA), speedA(speedA), dirB(dirB), speedB(speedB) {
+MotorHandler::MotorHandler(PinName dirA, PinName PWMA, PinName dirB, PinName PWMB):
+   motorA(dirA, PWMA), motorB(dirB, PWMB) {
   }
   // extra initialization function to set up the motors, doing this in the constructor did not work
   // TODO maybe add some error handling stuff here
-void motorHandler::init() {
-    speedA.period(0.001f);
-    speedB.period(0.001f);
+void MotorHandler::init() {
+  motorA.init();
+  motorB.init();
 }
 
-void motorHandler::incrementEncoderA() {
-  encoderCountA += dirA ? 1 : -1;
+void MotorHandler::incrementEncoderA() {
+  encoderCountA += motorA.dir ? -1 : 1;
+  motorA.distance += motorA.dir ? -0.235 : 0.235;
   if(encoderCountA % 330 == 0) {
     revCountA++;
   }
 }
 
-void motorHandler::incrementEncoderB() {
-  encoderCountB += dirB ? -1 : 1;
+void MotorHandler::incrementEncoderB() {
+  encoderCountB += motorB.dir ? 1 : -1;
+  motorB.distance += motorB.dir ? 0.241 : -0.241;
   if(encoderCountB % 330 == 0) {
     revCountB++;
   }
 }
 
-void motorHandler::turn(double angle) {}
-
-void motorHandler::move(double speed) {
-  if(speed >= 0) {
-    dirA = LOW;
-    dirB = HIGH;
-  } 
-  if(speed < 0) {
-    dirA = HIGH;
-    dirB = LOW;
+void MotorHandler::move(double speed, double turn) {
+  // convert cm/s into 0...1
+  if(speed != 0) {
+    speed = (speed + 30)/350;
   }
-  speedA.write(abs(speed));
-  speedB.write(abs(speed));
-}
-
-void motorHandler::left(double speed) {
-  dirA = HIGH;
-  dirB = HIGH;
-  speedA.write(speed);
-  speedB.write(speed);
-}
-void motorHandler::right(double speed) {
-  dirA = LOW;
-  dirB = LOW;
-  speedA.write(speed);
-  speedB.write(speed);
+  // -2 for hard left, +2 for hard right
+  if(turn == 0) {
+    motorA.move(speed);
+    motorB.move(-speed);
+  } else if(turn > 0) {
+    motorA.move(speed);
+    motorB.move(-(speed - turn));
+  } else if(turn < 0) {
+    motorA.move(speed + turn);
+    motorB.move(-speed);
+  }
 }
