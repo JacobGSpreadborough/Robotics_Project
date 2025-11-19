@@ -1,0 +1,3 @@
+/Users/jacobspreadborough/robotics/arduinoConnect/build/CMakeFiles/arduinoConnect.dir
+/Users/jacobspreadborough/robotics/arduinoConnect/build/CMakeFiles/edit_cache.dir
+/Users/jacobspreadborough/robotics/arduinoConnect/build/CMakeFiles/rebuild_cache.dir
