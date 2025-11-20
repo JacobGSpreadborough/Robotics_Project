@@ -8,6 +8,8 @@ void MotorHandler::init() {
   motorA.init();
   motorB.init();
 }
+// speed should be in mm/s, turn should be in deg/s
+// TODO compensate for the difference between left and right motors
 void MotorHandler::move(double speed, double turn) {
   if(speed == 0) {
     motorA.move(0);
@@ -15,6 +17,9 @@ void MotorHandler::move(double speed, double turn) {
   } else {
     // convert cm/s into 0...1
     speed = (speed + 30)/350;
+    // convert deg/s into 0...1
+    double compensation = (1 - speed) * 25;
+    turn = (turn + compensation)/115;
     // -2 for hard left, +2 for hard right
     if(turn == 0) {
       motorA.move(speed);

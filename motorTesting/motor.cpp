@@ -23,6 +23,5 @@ motor::motor(PinName dir, PinName PWM, PinName encoder, bool inverted) :
     if(speed > 0) {
       _dir = LOW;
     }
-    
     _PWM.write(fabs(speed));
   }
