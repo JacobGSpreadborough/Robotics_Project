@@ -3,17 +3,11 @@
 #include "motor.h"
 
 class MotorHandler {
-  public:
+ public:
     motor motorA;
     motor motorB;
-    MotorHandler(PinName dirA, PinName PWMA, PinName dirB, PinName PWMB);
-    long long encoderCountA;
-    long long revCountA;
-    long long encoderCountB;
-    long long revCountB;
+    MotorHandler(PinName, PinName, PinName, PinName, PinName, PinName);
     void init();
-    void incrementEncoderA();
-    void incrementEncoderB();
     void move(double speed, double turn);
 };
 

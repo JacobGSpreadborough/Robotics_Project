@@ -1,29 +1,20 @@
 #include "motorHandler.h"
 #include <mbed.h>
 
-mbed::InterruptIn encoderA(P1_11);
-mbed::InterruptIn encoderB(P1_12);
-MotorHandler motorHandler(P0_4, P0_27, P0_5, P1_2);
-
-
-void encoderACallback() {
-  motorHandler.incrementEncoderA();
-}
-void encoderBCallback() {
-  motorHandler.incrementEncoderB();
-}
-
-int loops;
+MotorHandler motorHandler(P0_4, P0_27, P1_11, P0_5, P1_2, P1_12);
 
 void setup() {
   motorHandler.init();
-  encoderA.rise(&encoderACallback);
-  encoderB.rise(&encoderBCallback);
-  encoderA.fall(&encoderACallback);
-  encoderB.fall(&encoderBCallback);
   Serial.begin(9600);
 }
 
 void loop() {
-  motorHandler.move(320,2);
+  motorHandler.move(200,0);
+  delay(1000);
+  Serial.print("A: ");
+  Serial.println(motorHandler.motorA.encoderCount);
+  Serial.print("B: ");
+  Serial.println(motorHandler.motorB.encoderCount);
+  motorHandler.move(0,0);
+  delay(100000);
 }
