@@ -3,17 +3,20 @@
 #include <mbed.h>
 
 class USSensor {
-  private: 
+  private:
+    mbed::DigitalOut _trig;
+    mbed::InterruptIn _echo;
     int _threshold;
-    mbed::DigitalInOut _trig;
     mbed::Timer _t;
-  public:
-    USSensor(PinName trig, int threshold);
+    void _startTimer();
+    void _stopTimer();
+  public: 
+    USSensor(PinName, PinName, int);
     char data[2];
     char lastData[2];
-    
     bool changed();
-    void read();
+    void init();
+    void trigger();
 };
 
 #endif

@@ -1,62 +1,33 @@
-#include <mbed.h>
-// sensor 2 trig/echo pin
-// triggers both sensors
-mbed::DigitalOut trig(P1_14);
-// sensor 3 trig/echo pin
-// echo for sensor 2
-mbed::InterruptIn echo1(P1_13);
-// sensor 1 trig/echo pin
-// echo for sensor 1
-mbed::InterruptIn echo2(P0_23);
+#include "USSensor.h"
+// The sensors share the fused trig/echo pin for sensor 1
+// US_1 uses the trig/echo pin for sensor 1 as its echo
+// US_2 uses the trig/echo pin for sensor 3 as its echo
+// this way we can use interrupts without having to dynamically configure the pins
+USSensor US_1(P1_14,P0_23,100);
+USSensor US_2(P1_14,P1_13,100);
 
-
-mbed::Timer t1;
-mbed::Timer t2;
-long long US1Data;
-long long US2Data;
-
-void echo1Rising(){
-  t1.reset();
-  t1.start();
-}
-
-void echo1Falling() {
-  t1.stop();
-  US1Data = std::chrono::duration_cast<std::chrono::microseconds>(t1.elapsed_time()).count();
-}
-
-void echo2Rising(){
-  t2.reset();
-  t2.start();
-}
-
-void echo2Falling() {
-  t2.stop();
-  US2Data = std::chrono::duration_cast<std::chrono::microseconds>(t2.elapsed_time()).count();
-}
-
-void triggerSensors() {
-  // trigger the sensors
-  trig.write(1);
-  wait_us(15);
-  trig.write(0);
+int bytesToInt(char bytes[2]) {
+  return (int(bytes[0]) << 8) + int(bytes[1]);
 }
 
 void setup() {
-  echo1.rise(&echo1Rising);
-  echo1.fall(&echo1Falling);
-  echo2.rise(&echo2Rising);
-  echo2.fall(&echo2Falling);
+  US_1.init();
+  US_2.init();
   Serial.begin(9600);
   delay(2000);
   Serial.println("Starting");
 }
 
 void loop() {
-  triggerSensors();
-  delay(50);
-  Serial.print("Sensor 1: ");
-  Serial.println(US1Data);
-  Serial.print("Sensor 2: ");
-  Serial.println(US2Data);
+  US_1.trigger();
+  US_2.trigger();
+  delay(100);
+  if(US_1.changed()){
+    Serial.print("1: ");
+    Serial.println(bytesToInt(US_1.data));
+  }
+  if(US_2.changed()){
+    Serial.print("2: ");
+    Serial.println(bytesToInt(US_2.data));
+  }
 }
