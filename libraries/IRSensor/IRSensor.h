@@ -12,7 +12,6 @@ class IRSensor {
     IRSensor(mbed::I2C &i2c, int id, int threshold);
     char data[2];
     char lastData[2];
-    void test();
     bool changed();
     void read();
 };

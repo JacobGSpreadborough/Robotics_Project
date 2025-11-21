@@ -1,5 +1,4 @@
 #include "simpleble/Types.h"
-#include <ratio>
 #include <simpleble/SimpleBLE.h>
 #include <iostream>
 #include <thread>
@@ -24,8 +23,6 @@ SimpleBLE::ByteArray forward = SimpleBLE::ByteArray::fromHex("01");
 SimpleBLE::ByteArray left = SimpleBLE::ByteArray::fromHex("02");
 SimpleBLE::ByteArray right = SimpleBLE::ByteArray::fromHex("03");
 SimpleBLE::ByteArray reverse = SimpleBLE::ByteArray::fromHex("04");
-
-
 
 int IRData0 = 0;
 int IRData1 = 0;
@@ -106,6 +103,6 @@ int main(int argc, char* argv[]) {
 		std::cout << "frontR: " << USData1 << std::endl; 
 		std::cout << "left: " << IRData0 << std::endl; 
 		std::cout << "right: " << IRData1 << std::endl;
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));	
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));	
 	}
 }

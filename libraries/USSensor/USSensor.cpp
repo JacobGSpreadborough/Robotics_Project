@@ -33,6 +33,8 @@ void USSensor::_stopTimer() {
   if(uSeconds > US_MAX_DISTANCE) {
     uSeconds = US_MAX_DISTANCE;
   }
+  lastData[0] = data[0];
+  lastData[1] = data[1];
   data[0] = char(uSeconds >> 8);
   data[1] = char(uSeconds);
   _t.reset();

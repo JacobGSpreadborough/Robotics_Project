@@ -54,10 +54,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/jacobspreadborough/robotics/arduinoConnect
+CMAKE_SOURCE_DIR = /Users/jacobspreadborough/Robotics_Project/arduinoConnect
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/jacobspreadborough/robotics/arduinoConnect/build
+CMAKE_BINARY_DIR = /Users/jacobspreadborough/Robotics_Project/arduinoConnect/build
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -85,14 +85,14 @@ clean: CMakeFiles/arduinoConnect.dir/clean
 CMakeFiles/arduinoConnect.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/arduinoConnect.dir/build.make CMakeFiles/arduinoConnect.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/arduinoConnect.dir/build.make CMakeFiles/arduinoConnect.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacobspreadborough/robotics/arduinoConnect/build/CMakeFiles --progress-num=1,2 "Built target arduinoConnect"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacobspreadborough/Robotics_Project/arduinoConnect/build/CMakeFiles --progress-num=1,2 "Built target arduinoConnect"
 .PHONY : CMakeFiles/arduinoConnect.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/arduinoConnect.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jacobspreadborough/robotics/arduinoConnect/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jacobspreadborough/Robotics_Project/arduinoConnect/build/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/arduinoConnect.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jacobspreadborough/robotics/arduinoConnect/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/jacobspreadborough/Robotics_Project/arduinoConnect/build/CMakeFiles 0
 .PHONY : CMakeFiles/arduinoConnect.dir/rule
 
 # Convenience name for target.
@@ -102,7 +102,7 @@ arduinoConnect: CMakeFiles/arduinoConnect.dir/rule
 # codegen rule for target.
 CMakeFiles/arduinoConnect.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/arduinoConnect.dir/build.make CMakeFiles/arduinoConnect.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacobspreadborough/robotics/arduinoConnect/build/CMakeFiles --progress-num=1,2 "Finished codegen for target arduinoConnect"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/jacobspreadborough/Robotics_Project/arduinoConnect/build/CMakeFiles --progress-num=1,2 "Finished codegen for target arduinoConnect"
 .PHONY : CMakeFiles/arduinoConnect.dir/codegen
 
 # clean rule for target.

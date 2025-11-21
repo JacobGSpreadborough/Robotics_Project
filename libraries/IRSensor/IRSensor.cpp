@@ -5,12 +5,6 @@ IRSensor::IRSensor(mbed::I2C &i2c, int id, int threshold)
   _mux_cmd = 0x01 << id;
  }
 
-void IRSensor::test() {
-  Serial.print("ID: ");
-  Serial.println(_id);
-  Serial.print("Address: ");
-  Serial.println(_mux_cmd, HEX);
-}
 
 void IRSensor::read() {
   // strcpy should work here but it freezes the program for some reason

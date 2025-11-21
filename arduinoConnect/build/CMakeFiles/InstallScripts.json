@@ -1,7 +1,7 @@
 {
 	"InstallScripts" : 
 	[
-		"/Users/jacobspreadborough/robotics/arduinoConnect/build/cmake_install.cmake"
+		"/Users/jacobspreadborough/Robotics_Project/arduinoConnect/build/cmake_install.cmake"
 	],
 	"Parallel" : false
 }
