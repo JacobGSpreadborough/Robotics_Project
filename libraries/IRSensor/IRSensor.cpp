@@ -8,16 +8,17 @@ IRSensor::IRSensor(mbed::I2C &i2c, int id, int threshold)
 
 void IRSensor::read() {
   // strcpy should work here but it freezes the program for some reason
-  lastData[0] = data[0];
-  lastData[1] = data[1];
+  lastData = data;
   _i2c.write(0xEE, &_mux_cmd, 1);
   char cmd[2] = {0x5e, 0x00};
   _i2c.write(0x80, cmd, 2);
-  _i2c.read(0x80, data, 2);
+  _i2c.read(0x80, bytes, 2);
+  data = (bytes[0] << 8) + bytes[1];
+  
 }
 
 bool IRSensor::changed() {
-  if(abs(data[1] - lastData[1]) > _threshold) {
+  if(abs(data - lastData) > _threshold) {
     return true;
   } else {
     return false;

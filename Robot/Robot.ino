@@ -6,15 +6,16 @@
 
 #define IR_DATA_WIDTH 2
 #define US_DATA_WIDTH 2
-#define IR_SENSOR_THRESHOLD 1
+#define IR_SENSOR_THRESHOLD 10
 #define US_SENSOR_THRESHOLD 10
 
 BLEService controlService("19B10000-E8F2-537E-4F6C-D104768A1214");
 BLEByteCharacteristic directionCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
-BLECharacteristic sensorIR1Characteristic("19B10002-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, IR_DATA_WIDTH, true);
-BLECharacteristic sensorIR2Characteristic("19B10003-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, IR_DATA_WIDTH, true);
-BLECharacteristic sensorUS1Characteristic("19B10004-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, US_DATA_WIDTH, true);
-BLECharacteristic sensorUS2Characteristic("19B10005-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, US_DATA_WIDTH, true);
+BLEIntCharacteristic sensorIR1Characteristic("19B10002-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
+BLEIntCharacteristic sensorIR2Characteristic("19B10003-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
+BLEIntCharacteristic sensorUS1Characteristic("19B10004-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
+BLEIntCharacteristic sensorUS2Characteristic("19B10005-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
+
 
 mbed::I2C i2c(P0_31, P0_2);
 IRSensor IR_1(i2c, 0, IR_SENSOR_THRESHOLD);
@@ -33,6 +34,8 @@ void sensorLoop() {
   while(connected){
     // only trigger one US sensor at a time
     US_1.trigger();
+    IR_1.read();
+    IR_2.read();
     // long enough for the US sensors to time out
     delay(100);
     if(US_1.changed()) {
@@ -41,8 +44,6 @@ void sensorLoop() {
     if(US_2.changed()) {
       sensorUS2Characteristic.writeValue(US_2.data);
     }
-    IR_1.read();
-    IR_2.read();
     if(IR_1.changed()) {
       sensorIR1Characteristic.writeValue(IR_1.data);
     }
@@ -79,6 +80,7 @@ void setup() {
   BLE.advertise();
 
   sensors.start(&sensorLoop);
+
 }
 void loop() {
 

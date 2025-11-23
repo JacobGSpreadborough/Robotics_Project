@@ -5,7 +5,7 @@ USSensor::USSensor(PinName trig, PinName echo, int threshold):
    _trig(trig), _echo(echo), _threshold(threshold) {}
 
 bool USSensor::changed() {
-  if(abs(data[1] - lastData[1]) > _threshold) {
+  if(abs(data - lastData) > _threshold) {
       return true;
     } else {
       return false;
@@ -33,9 +33,7 @@ void USSensor::_stopTimer() {
   if(uSeconds > US_MAX_DISTANCE) {
     uSeconds = US_MAX_DISTANCE;
   }
-  lastData[0] = data[0];
-  lastData[1] = data[1];
-  data[0] = char(uSeconds >> 8);
-  data[1] = char(uSeconds);
+  lastData = data;
+  data = uSeconds;
   _t.reset();
 }

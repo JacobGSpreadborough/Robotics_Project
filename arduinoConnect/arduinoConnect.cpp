@@ -1,12 +1,8 @@
-#include "simpleble/Types.h"
+#include <chrono>
 #include <simpleble/SimpleBLE.h>
 #include <iostream>
 #include <thread>
 
-// the point at which the sensor stops giving accurate readings
-#define IR_MINIMUM_VALUE 3000
-// TODO determine the minimum value from the US sensors
-#define US_MINIMUM_VALUE 0
 // address for my arduino
 SimpleBLE::BluetoothAddress arduinoAddress = "E9525410-C8F6-0B17-7139-E5855BBA4D21";
 SimpleBLE::BluetoothUUID controlUUID = "19b10000-e8f2-537e-4f6c-d104768a1214";
@@ -26,14 +22,17 @@ SimpleBLE::ByteArray reverse = SimpleBLE::ByteArray::fromHex("04");
 
 int IRData0 = 0;
 int IRData1 = 0;
-int USData0 = 0;
-int USData1 = 0;
+float USData0 = 0;
+float USData1 = 0;
 
-int bytesToInt(SimpleBLE::ByteArray bytes) {
-		return (bytes[0] << 8) + bytes[1];
+int bytesToInt(SimpleBLE::ByteArray bytes, size_t length) {
+		int r =0;
+		for(int i=0;i<length;i++){
+			r += bytes[i] << ( 8 * i);
+		}
+		return r;
 }
-
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) { 
 
 	if(!SimpleBLE::Adapter::bluetooth_enabled()){
         std::cout << "Bluetooth is not enabled" << std::endl;
@@ -72,30 +71,21 @@ int main(int argc, char* argv[]) {
     std::cout << "Successfully Connected" << std::endl;
  	// callback for recieving data from the IR sensor
 	arduino.notify(controlUUID,IRSensor0UUID,[&](SimpleBLE::ByteArray bytes) {
-					IRData0 = bytesToInt(bytes);
-					if(IRData0 < IR_MINIMUM_VALUE) {
-						IRData0 = 0;
-					}
+					IRData0 = bytesToInt(bytes,bytes.size());
+					IRData0 = (IRData0 >> 10) + 2;
 		});
 	arduino.notify(controlUUID,IRSensor1UUID,[&](SimpleBLE::ByteArray bytes) {
-					IRData1 = bytesToInt(bytes);
-					if(IRData1 < IR_MINIMUM_VALUE) {
-						IRData1 = 0;
-					}
+					IRData1 = bytesToInt(bytes,bytes.size());
+					IRData1 = (IRData1 >> 10) + 2;
 		});
 	// callback for recieving data from the US Sensor
 	arduino.notify(controlUUID,USSensor0UUID,[&](SimpleBLE::ByteArray bytes) {
-					USData0 = bytesToInt(bytes);
-					if(USData0 < US_MINIMUM_VALUE) {
-						USData0 = 0;
-					}
+					float uSeconds = bytesToInt(bytes,bytes.size());
+					USData0 = (uSeconds*0.0343) / 2;
 		});
 	arduino.notify(controlUUID,USSensor1UUID,[&](SimpleBLE::ByteArray bytes) {
-					USData1 = bytesToInt(bytes);
-					if(USData1 < US_MINIMUM_VALUE) {
-						USData1 = 0;
-					}
-	//				std::cout<< "US Sensor: " << USData  << std::endl; 
+					float uSeconds = bytesToInt(bytes,bytes.size());
+					USData1 = (uSeconds*0.0343) / 2;
 		});
     while(arduino.is_connected()){
 		system("clear");
@@ -103,6 +93,6 @@ int main(int argc, char* argv[]) {
 		std::cout << "frontR: " << USData1 << std::endl; 
 		std::cout << "left: " << IRData0 << std::endl; 
 		std::cout << "right: " << IRData1 << std::endl;
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));	
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }

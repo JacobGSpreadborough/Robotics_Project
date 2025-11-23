@@ -12,8 +12,8 @@ class USSensor {
     void _stopTimer();
   public: 
     USSensor(PinName, PinName, int);
-    char data[2];
-    char lastData[2];
+	int data;
+	int lastData;
     bool changed();
     void init();
     void trigger();

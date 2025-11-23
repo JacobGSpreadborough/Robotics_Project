@@ -10,8 +10,9 @@ class IRSensor {
     char _mux_cmd;
   public: 
     IRSensor(mbed::I2C &i2c, int id, int threshold);
-    char data[2];
-    char lastData[2];
+    char bytes[2];
+	int lastData;
+	int data;
     bool changed();
     void read();
 };

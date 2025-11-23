@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/Users/jacobspreadborough/Robotics_Project/arduinoConnect/build",
+  "command": "/usr/bin/c++   -std=gnu++17 -arch arm64 -o CMakeFiles/arduinoConnect.dir/arduinoConnect.cpp.o -c /Users/jacobspreadborough/Robotics_Project/arduinoConnect/arduinoConnect.cpp",
+  "file": "/Users/jacobspreadborough/Robotics_Project/arduinoConnect/arduinoConnect.cpp",
+  "output": "CMakeFiles/arduinoConnect.dir/arduinoConnect.cpp.o"
+}
+]
