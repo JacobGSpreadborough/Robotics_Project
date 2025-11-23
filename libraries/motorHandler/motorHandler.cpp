@@ -11,9 +11,17 @@ void MotorHandler::init() {
 // speed should be in mm/s, turn should be in deg/s
 // TODO compensate for the difference between left and right motors
 void MotorHandler::move(double speed, double turn) {
+  _t.stop();
+  long long int uSeconds = std::chrono::duration_cast<std::chrono::milliseconds>(_t.elapsed_time()).count();
+  angle += (_prevTurn * uSeconds)/1000;
+  _prevTurn = turn;
+  _t.reset();
+  _t.start();
   if(speed == 0) {
     motorA.move(0);
     motorB.move(0);
+    _t.stop();
+    _t.reset();
   } else {
     // convert cm/s into 0...1
     speed = (speed + 30)/350;
