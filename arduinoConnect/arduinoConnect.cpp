@@ -1,7 +1,5 @@
-#include <chrono>
 #include <simpleble/SimpleBLE.h>
 #include <iostream>
-#include <thread>
 
 // address for my arduino
 SimpleBLE::BluetoothAddress arduinoAddress = "E9525410-C8F6-0B17-7139-E5855BBA4D21";
@@ -20,6 +18,14 @@ SimpleBLE::ByteArray left = SimpleBLE::ByteArray::fromHex("02");
 SimpleBLE::ByteArray right = SimpleBLE::ByteArray::fromHex("03");
 SimpleBLE::ByteArray reverse = SimpleBLE::ByteArray::fromHex("04");
 
+enum RobotState {
+	STATE_STOP = 0,
+	STATE_FORWARD,
+	STATE_LEFT,
+	STATE_RIGHT,
+	STATE_BACKWARD
+}currentState;
+
 int IRData0 = 0;
 int IRData1 = 0;
 float USData0 = 0;
@@ -32,20 +38,24 @@ int bytesToInt(SimpleBLE::ByteArray bytes, size_t length) {
 		}
 		return r;
 }
+
 int main(int argc, char* argv[]) { 
 
 	if(!SimpleBLE::Adapter::bluetooth_enabled()){
         std::cout << "Bluetooth is not enabled" << std::endl;
         return 1;
     }	
+
     // get and use the first adapter
     // this should be the only adapter on this computer
     std::vector<SimpleBLE::Adapter> adapters = SimpleBLE::Adapter::get_adapters();
+
     // fail if no adapters are found
     if(adapters.empty()) {
         std::cout << "No adapters available" << std::endl;
         return 1;
     }
+
     SimpleBLE::Adapter adapter = adapters[0];
     SimpleBLE::Peripheral arduino;
 	    
@@ -58,41 +68,59 @@ int main(int argc, char* argv[]) {
             adapter.scan_stop();
         }
     });
+	
     std::cout << "Scanning for Arduino..." << std::endl;
     adapter.scan_start();
+
     // program idles while waiting for connection
     while(adapter.scan_is_active()) {}
+
     try {
         arduino.connect();
     } catch (SimpleBLE::Exception::OperationFailed) {
         std::cout << "Connection failed" << std::endl;
         return 1;
     }
+
     std::cout << "Successfully Connected" << std::endl;
- 	// callback for recieving data from the IR sensor
+
 	arduino.notify(controlUUID,IRSensor0UUID,[&](SimpleBLE::ByteArray bytes) {
 					IRData0 = bytesToInt(bytes,bytes.size());
 					IRData0 = (IRData0 >> 10) + 2;
 		});
+
 	arduino.notify(controlUUID,IRSensor1UUID,[&](SimpleBLE::ByteArray bytes) {
 					IRData1 = bytesToInt(bytes,bytes.size());
 					IRData1 = (IRData1 >> 10) + 2;
 		});
-	// callback for recieving data from the US Sensor
+
 	arduino.notify(controlUUID,USSensor0UUID,[&](SimpleBLE::ByteArray bytes) {
 					float uSeconds = bytesToInt(bytes,bytes.size());
 					USData0 = (uSeconds*0.0343) / 2;
 		});
+	
 	arduino.notify(controlUUID,USSensor1UUID,[&](SimpleBLE::ByteArray bytes) {
 					float uSeconds = bytesToInt(bytes,bytes.size());
 					USData1 = (uSeconds*0.0343) / 2;
 		});
+
     while(arduino.is_connected()){
-		system("clear");
-		std::cout << "frontL: " << USData0 << std::endl; 
-		std::cout << "frontR: " << USData1 << std::endl; 
-		std::cout << "left: " << IRData0 << std::endl; 
-		std::cout << "right: " << IRData1 << std::endl;
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+		switch(currentState) {
+			case STATE_STOP:
+				  break;
+			case STATE_FORWARD:
+				  break;
+			case STATE_LEFT:
+				  break;
+			case STATE_RIGHT:
+				  break;
+			case STATE_BACKWARD:
+				  break;
+			default:
+				  arduino.disconnect();
+				  return 1;
+
+		}
 	}
 }

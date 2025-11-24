@@ -24,7 +24,8 @@ USSensor US_1(P1_14,P0_23,US_SENSOR_THRESHOLD);
 USSensor US_2(P1_14,P1_13,US_SENSOR_THRESHOLD);
 MotorHandler motorHandler(P0_4, P0_27, P1_11, P0_5, P1_2, P1_12);
 rtos::Thread sensors;
-volatile bool connected = true;
+rtos::Thread control;
+volatile bool connected = false;
 
 int bytesToInt(char bytes[2]) {
   return (bytes[0] << 8) + bytes[1];
@@ -50,6 +51,12 @@ void sensorLoop() {
     if(IR_2.changed()) {
       sensorIR2Characteristic.writeValue(IR_2.data);
     }
+  }
+}
+
+void controlLoop() {
+  while(connected) {
+    
   }
 }
 
@@ -80,6 +87,7 @@ void setup() {
   BLE.advertise();
 
   sensors.start(&sensorLoop);
+  control.start(&controlLoop);
 
 }
 void loop() {
@@ -88,41 +96,29 @@ void loop() {
   BLEDevice central = BLE.central();
 
   if (central.connected()) {
+    connected = true;
     Serial.println("Connected to central: ");
     Serial.println(central.address());
   } else {
-    //Serial.println("no connection");
-  }
+    // if central was connected before
+    if(connected) {
+      connected = false;
+      Serial.println("Connection lost");
+      // stop the motors and threads
+      sensors.join();
+      Serial.println("Sensors joined");
+      control.join();
+      Serial.println("Controls joined");
+      motorHandler.move(0,0);
 
+    } else {
+      Serial.println("No connection");
+    }
+  }
+  // main loop
   while (central.connected()) {
     BLE.poll();
-
-    if (directionCharacteristic.written()) {
-      switch (directionCharacteristic.value()) {
-        case 0:
-          Serial.println("stop");
-          motorHandler.move(0,0);
-          break;
-        case 1:
-          Serial.println("forward");
-          motorHandler.move(1.0,0);
-          break;
-        case 2:
-          Serial.println("left");
-          motorHandler.move(1.0,-90);
-          break;
-        case 3:
-          Serial.println("right");
-          motorHandler.move(1.0,90);
-          break;
-        case 4:
-          Serial.println("reverse");
-          motorHandler.move(-1,0);
-          break;
-        default: 
-          Serial.println("Invalid input");
-          break;
-      }
-    }
+    motorHandler.move(100,0);
+    delay(5000);
   }
 }
