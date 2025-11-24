@@ -11,16 +11,9 @@ void MotorHandler::init() {
   motorA.init();
   motorB.init();
 }
-
 // speed should be in mm/s, turn should be in deg/s
 // TODO compensate for the difference between left and right motors
 void MotorHandler::move(double speed, double turn) {
-  _t.stop();
-  long long int uSeconds = duration_cast<milliseconds>(_t.elapsed_time()).count();
-  angle += (_prevTurn * uSeconds)/1000;
-  _prevTurn = turn;
-  _t.reset();
-  _t.start();
   if(speed == 0) {
     motorA.move(0);
     motorB.move(0);
@@ -44,4 +37,9 @@ void MotorHandler::move(double speed, double turn) {
       motorB.move(-speed);
     }
   }
+}
+
+void MotorHandler::location(){
+  xPosition = ((motorA.encoderCount + motorB.encoderCount)/2) * sin(angle); 
+  yPosition = ((motorA.encoderCount + motorB.encoderCount)/2) * cos(angle); 
 }

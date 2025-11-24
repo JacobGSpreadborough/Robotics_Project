@@ -1,4 +1,5 @@
 #include <mbed.h>
+#include "Arduino_BMI270_BMM150.h"
 #include <ArduinoBLE.h>
 #include <IRSensor.h>
 #include <motorHandler.h>
@@ -18,6 +19,7 @@ BLEIntCharacteristic sensorUS2Characteristic("19B10005-E8F2-537E-4F6C-D104768A12
 
 
 mbed::I2C i2c(P0_31, P0_2);
+mbed::Timer t;
 IRSensor IR_1(i2c, 0, IR_SENSOR_THRESHOLD);
 IRSensor IR_2(i2c, 1, IR_SENSOR_THRESHOLD);
 USSensor US_1(P1_14,P0_23,US_SENSOR_THRESHOLD);
@@ -25,10 +27,52 @@ USSensor US_2(P1_14,P1_13,US_SENSOR_THRESHOLD);
 MotorHandler motorHandler(P0_4, P0_27, P1_11, P0_5, P1_2, P1_12);
 rtos::Thread sensors;
 rtos::Thread control;
+rtos::Thread gyro;
 volatile bool connected = false;
+float x,y,z;
+float angle;
+float delta;
 
 int bytesToInt(char bytes[2]) {
   return (bytes[0] << 8) + bytes[1];
+}
+
+float calibrateIMU() {
+  float delta = 0;
+  int count = 0;
+  // loop runs for 10 seconds
+  long startTime = millis();
+  long endTime = startTime;
+  while((endTime - startTime) <= 10000) {
+    if(IMU.accelerationAvailable()) {
+      IMU.readGyroscope(x, y, z);
+      delta += z;
+      count++;
+      endTime = millis();
+      
+    }
+  }
+  Serial.print("Offset: ");
+  Serial.println(delta);
+  Serial.print("After: ");
+  Serial.print(count);
+  Serial.println(" cycles");
+  return delta/count;
+}
+
+void gyroLoop(){
+  while(connected) {
+    t.reset();
+    t.start();
+    delay(100);
+    if(IMU.gyroscopeAvailable()) {
+      t.stop();
+      long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(t.elapsed_time()).count();
+      IMU.readGyroscope(x,y,z);
+      z -= delta;
+      angle += (ms * z)/1000;
+    }
+  }
 }
 
 void sensorLoop() {
@@ -56,7 +100,23 @@ void sensorLoop() {
 
 void controlLoop() {
   while(connected) {
-    
+    delay(100);
+    if(directionCharacteristic.written()){
+      switch(directionCharacteristic.value()) {
+        case 0:
+          break;
+        case 1:
+          break;
+        case 2:
+          break;
+        case 3:
+          break;
+        case 4:
+          break;
+        default:
+          break;
+      }
+    }
   }
 }
 
@@ -65,13 +125,23 @@ void setup() {
   US_1.init();
   US_2.init();
   Serial.begin(115200);
-  delay(5000);
+  while(!Serial);
   Serial.println("Starting");
+
+  if(!IMU.begin()) {
+    Serial.println("Could not start IMU");
+  }
+  Serial.println("Calibrating IMU");
+  delta = calibrateIMU();
+  Serial.println("IMU calibrated");
+  Serial.println(delta);
 
   if (!BLE.begin()) {
     Serial.print("Could not start BLE");
     NVIC_SystemReset();
   }
+
+  Serial.println("BLE Started");
 
   BLE.setDeviceName("Spread");
   BLE.setLocalName("Spread");
@@ -86,8 +156,8 @@ void setup() {
 
   BLE.advertise();
 
-  sensors.start(&sensorLoop);
-  control.start(&controlLoop);
+  Serial.println("BLE advertising");
+
 
 }
 void loop() {
@@ -99,6 +169,9 @@ void loop() {
     connected = true;
     Serial.println("Connected to central: ");
     Serial.println(central.address());
+    sensors.start(&sensorLoop);
+    control.start(&controlLoop);
+    gyro.start(&gyroLoop);
   } else {
     // if central was connected before
     if(connected) {
@@ -109,6 +182,8 @@ void loop() {
       Serial.println("Sensors joined");
       control.join();
       Serial.println("Controls joined");
+      gyro.join();
+      Serial.println("Gyro joined");
       motorHandler.move(0,0);
 
     } else {
@@ -118,7 +193,7 @@ void loop() {
   // main loop
   while (central.connected()) {
     BLE.poll();
-    motorHandler.move(100,0);
-    delay(5000);
+    Serial.println(angle);
+    delay(1000);
   }
 }
