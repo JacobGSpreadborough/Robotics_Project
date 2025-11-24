@@ -1,5 +1,8 @@
+#include <chrono>
 #include <simpleble/SimpleBLE.h>
 #include <iostream>
+#include <sys/syslimits.h>
+#include <thread>
 
 // address for my arduino
 SimpleBLE::BluetoothAddress arduinoAddress = "E9525410-C8F6-0B17-7139-E5855BBA4D21";
@@ -105,22 +108,54 @@ int main(int argc, char* argv[]) {
 		});
 
     while(arduino.is_connected()){
-
-		switch(currentState) {
-			case STATE_STOP:
-				  break;
+	switch(currentState){
 			case STATE_FORWARD:
-				  break;
+					std::cout << currentState << std::endl;
+					// tell arduino to move forward;
+					arduino.write_request(controlUUID, directionUUID, forward);
+					// turn left or right based on sensor input
+					if((USData0 < 15) || (USData1 < 15)){
+						// go backwards if there are walls on both sides
+						if((IRData0 < 15) && (IRData1 < 15)) {
+								currentState = STATE_BACKWARD;
+							//otherwise turn to the more open side
+						} else{
+							currentState = (IRData0 < IRData1) ? STATE_RIGHT : STATE_LEFT;
+						}
+					}
+					break;
 			case STATE_LEFT:
-				  break;
+					std::cout << currentState << std::endl;
+					// wait until there is more space to move forward
+					arduino.write_request(controlUUID,directionUUID, left);
+					if((USData0 < 30) || (USData1 > 30)) {
+							currentState = STATE_FORWARD;
+					}
+					break;
 			case STATE_RIGHT:
-				  break;
+					std::cout << currentState << std::endl;
+					// wait until there is more space to move forward
+					arduino.write_request(controlUUID,directionUUID,right);
+					if((USData0 < 30) || (USData1 > 30)) {
+							currentState = STATE_FORWARD;
+					}
+					break;				
 			case STATE_BACKWARD:
-				  break;
+					std::cout << currentState << std::endl;
+						arduino.write_request(controlUUID,directionUUID,reverse);
+					// TODO add this
+					break;
+			case STATE_STOP:
+					std::cout << currentState << std::endl;
+					if((USData0 > 15) || (USData1 > 15)) {
+							currentState = STATE_FORWARD;
+					} else {
+							currentState = (IRData0 < IRData1) ? STATE_RIGHT : STATE_LEFT;
+					}
+					break;
 			default:
-				  arduino.disconnect();
-				  return 1;
-
-		}
+					currentState = STATE_STOP;
+					break;
+	}
 	}
 }

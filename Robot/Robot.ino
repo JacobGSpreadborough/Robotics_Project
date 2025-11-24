@@ -104,16 +104,22 @@ void controlLoop() {
     if(directionCharacteristic.written()){
       switch(directionCharacteristic.value()) {
         case 0:
+          motorHandler.move(0,0);
           break;
         case 1:
+          motorHandler.move(200,0);
           break;
         case 2:
+          motorHandler.move(200,90);
           break;
         case 3:
+          motorHandler.move(200,-90);
           break;
         case 4:
+          motorHandler.move(-200,0);
           break;
         default:
+          motorHandler.move(0,0);
           break;
       }
     }
