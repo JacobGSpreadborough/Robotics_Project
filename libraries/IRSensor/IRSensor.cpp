@@ -1,4 +1,5 @@
 #include "IRSensor.h"
+#define IR_MIN_DISTANCE 2000
 
 IRSensor::IRSensor(mbed::I2C &i2c, int id, int threshold)
  : _i2c(i2c), _id(id), _threshold(threshold) {
@@ -14,7 +15,9 @@ void IRSensor::read() {
   _i2c.write(0x80, cmd, 2);
   _i2c.read(0x80, bytes, 2);
   data = (bytes[0] << 8) + bytes[1];
-  
+  if(data < IR_MIN_DISTANCE) {
+    data = 0;
+  }
 }
 
 bool IRSensor::changed() {

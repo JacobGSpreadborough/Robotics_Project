@@ -11,8 +11,8 @@ class IRSensor {
   public: 
     IRSensor(mbed::I2C &i2c, int id, int threshold);
     char bytes[2];
-	int lastData;
-	int data;
+	int lastData = 0;
+	int data = 15;
     bool changed();
     void read();
 };
