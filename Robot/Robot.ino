@@ -7,8 +7,8 @@
 
 #define IR_DATA_WIDTH 2
 #define US_DATA_WIDTH 2
-#define IR_SENSOR_THRESHOLD 10
-#define US_SENSOR_THRESHOLD 10
+#define IR_SENSOR_THRESHOLD 0
+#define US_SENSOR_THRESHOLD 0
 
 BLEService controlService("19B10000-E8F2-537E-4F6C-D104768A1214");
 BLEByteCharacteristic directionCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
@@ -29,7 +29,8 @@ rtos::Thread sensors;
 rtos::Thread control;
 rtos::Thread gyro;
 volatile bool connected = false;
-float x,y,z;
+float xAngle,yAngle,zAngle;
+float xAccel,yAccel,zAccel;
 float angle;
 float delta;
 
@@ -44,12 +45,11 @@ float calibrateIMU() {
   long startTime = millis();
   long endTime = startTime;
   while((endTime - startTime) <= 10000) {
-    if(IMU.accelerationAvailable()) {
-      IMU.readGyroscope(x, y, z);
-      delta += z;
+    if(IMU.gyroscopeAvailable()) {
+      IMU.readGyroscope(xAngle, yAngle, zAngle);
+      delta += zAngle;
       count++;
       endTime = millis();
-      
     }
   }
   Serial.print("Offset: ");
@@ -68,9 +68,14 @@ void gyroLoop(){
     if(IMU.gyroscopeAvailable()) {
       t.stop();
       long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(t.elapsed_time()).count();
-      IMU.readGyroscope(x,y,z);
-      z -= delta;
-      angle += (ms * z)/1000;
+
+      IMU.readGyroscope(xAngle,yAngle,zAngle);
+      // adjust for the IMU's inaccuracy
+      zAngle -= delta;
+      // integrate velocity to get position
+      angle += (ms * zAngle)/1000;
+      // give the motors the current angle to calculate distance
+      motorHandler.angle = angle;
     }
   }
 }

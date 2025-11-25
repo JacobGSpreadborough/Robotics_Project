@@ -1,4 +1,5 @@
 #include "motorHandler.h"
+#define PI 3.1415926536
 
 using namespace std::chrono;
 
@@ -14,6 +15,7 @@ void MotorHandler::init() {
 // speed should be in mm/s, turn should be in deg/s
 // TODO compensate for the difference between left and right motors
 void MotorHandler::move(double speed, double turn) {
+  location(speed);
   if(speed == 0) {
     motorA.move(0);
     motorB.move(0);
@@ -28,7 +30,7 @@ void MotorHandler::move(double speed, double turn) {
     // -2 for hard left, +2 for hard right
     if(turn == 0) {
       motorA.move(speed);
-      motorB.move(-speed);
+      motorB.move(-(speed));
     } else if(turn > 0) {
       motorA.move(speed);
       motorB.move(-(speed - turn));
@@ -39,7 +41,13 @@ void MotorHandler::move(double speed, double turn) {
   }
 }
 
-void MotorHandler::location(){
-  xPosition = ((motorA.encoderCount + motorB.encoderCount)/2) * sin(angle); 
-  yPosition = ((motorA.encoderCount + motorB.encoderCount)/2) * cos(angle); 
+void MotorHandler::location(double speed){
+  _t.stop();
+  long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(_t.elapsed_time()).count();
+  // speed * time = distance
+  xPosition += ((_prevSpeed * ms)/1000) * cos(angle * PI/180);
+  yPosition += ((_prevSpeed * ms)/1000) * sin(angle * PI/180);
+  _prevSpeed = speed;
+  _t.reset();
+  _t.start();
 }
