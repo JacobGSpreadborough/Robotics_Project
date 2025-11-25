@@ -112,13 +112,13 @@ void controlLoop() {
           motorHandler.move(0,0);
           break;
         case 1:
-          motorHandler.move(200,0);
+          motorHandler.move(150,0);
           break;
         case 2:
-          motorHandler.move(200,220);
+          motorHandler.move(150,200);
           break;
         case 3:
-          motorHandler.move(200,-220);
+          motorHandler.move(150,-200);
           break;
         case 4:
           motorHandler.move(-100,0);
@@ -173,7 +173,6 @@ void setup() {
 }
 void loop() {
 
-  delay(100);
   BLEDevice central = BLE.central();
 
   if (central.connected()) {
@@ -198,13 +197,14 @@ void loop() {
       motorHandler.move(0,0);
 
     } else {
+      // allow reconnection
+      BLE.advertise();
       Serial.println("No connection");
     }
   }
   // main loop
   while (central.connected()) {
     BLE.poll();
-    Serial.println(angle);
     delay(1000);
   }
 }
