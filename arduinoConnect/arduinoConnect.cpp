@@ -1,17 +1,19 @@
+#include "simpleble/Types.h"
 #include <chrono>
 #include <simpleble/SimpleBLE.h>
 #include <iostream>
-#include <sys/syslimits.h>
 #include <thread>
 
 // address for my arduino
-SimpleBLE::BluetoothAddress arduinoAddress = "E9525410-C8F6-0B17-7139-E5855BBA4D21";
+SimpleBLE::BluetoothAddress arduinoAddress = "6CFC6917-94B4-03DA-C5BC-9BC05CA2496B";
 SimpleBLE::BluetoothUUID controlUUID = "19b10000-e8f2-537e-4f6c-d104768a1214";
 SimpleBLE::BluetoothAddress directionUUID = "19b10001-e8f2-537e-4f6c-d104768a1214";
 SimpleBLE::BluetoothUUID IRSensor0UUID = "19b10002-e8f2-537e-4f6c-d104768a1214";
 SimpleBLE::BluetoothUUID IRSensor1UUID = "19b10003-e8f2-537e-4f6c-d104768a1214";
 SimpleBLE::BluetoothUUID USSensor0UUID ="19b10004-e8f2-537e-4f6c-d104768a1214";
 SimpleBLE::BluetoothUUID USSensor1UUID =  "19b10005-e8f2-537e-4f6c-d104768a1214"; 
+SimpleBLE::BluetoothUUID navigationUUID =  "b5178912-9c0c-4a22-ac6e-6f7ca232058e";
+SimpleBLE::BluetoothUUID angleUUID = "b5178913-9c0c-4a22-ac6e-6f7ca232058e";
 
 // commands for the adruino
 // TODO figure out how to do this better
@@ -33,6 +35,7 @@ int IRData0 = 0;
 int IRData1 = 0;
 float USData0 = 0;
 float USData1 = 0;
+float angle =0;
 
 int bytesToInt(SimpleBLE::ByteArray bytes, size_t length) {
 		int r =0;
@@ -106,8 +109,17 @@ int main(int argc, char* argv[]) {
 					float uSeconds = bytesToInt(bytes,bytes.size());
 					USData1 = (uSeconds*0.0343) / 2;
 		});
+	arduino.notify(navigationUUID,angleUUID,[&](SimpleBLE::ByteArray bytes) {
+					angle = float(bytesToInt(bytes,bytes.size()));
+		});
 
     while(arduino.is_connected()){
+			system("clear");
+			std::cout << "frontL: " << USData0 << std::endl;
+			std::cout << "frontR: " << USData1 << std::endl;
+			std::cout << "left:   " << IRData0 << std::endl;
+			std::cout << "right:  " << IRData1 << std::endl;
+			std::cout << "angle:  " << angle << std::endl;
 	switch(currentState){
 			case STATE_FORWARD:
 					std::cout << currentState << std::endl;
@@ -128,7 +140,7 @@ int main(int argc, char* argv[]) {
 					std::cout << currentState << std::endl;
 					// wait until there is more space to move forward
 					arduino.write_request(controlUUID,directionUUID, left);
-					if((USData0 < 30) || (USData1 > 30)) {
+					if((USData0 > 40) || (USData1 > 40)) {
 							currentState = STATE_FORWARD;
 					}
 					break;
@@ -136,14 +148,16 @@ int main(int argc, char* argv[]) {
 					std::cout << currentState << std::endl;
 					// wait until there is more space to move forward
 					arduino.write_request(controlUUID,directionUUID,right);
-					if((USData0 < 30) || (USData1 > 30)) {
+					if((USData0 > 40) || (USData1 > 40)) {
 							currentState = STATE_FORWARD;
 					}
 					break;				
 			case STATE_BACKWARD:
 					std::cout << currentState << std::endl;
-						arduino.write_request(controlUUID,directionUUID,reverse);
-					// TODO add this
+					arduino.write_request(controlUUID,directionUUID,reverse);
+					if((IRData0 > 15) || (IRData1 > 15)) {
+						currentState = (IRData0 < IRData1) ? STATE_RIGHT : STATE_LEFT;	
+					}
 					break;
 			case STATE_STOP:
 					std::cout << currentState << std::endl;
