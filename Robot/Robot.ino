@@ -16,6 +16,8 @@ BLEIntCharacteristic sensorIR1Characteristic("19B10002-E8F2-537E-4F6C-D104768A12
 BLEIntCharacteristic sensorIR2Characteristic("19B10003-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
 BLEIntCharacteristic sensorUS1Characteristic("19B10004-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
 BLEIntCharacteristic sensorUS2Characteristic("19B10005-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
+BLEService navigationService("b5178912-9c0c-4a22-ac6e-6f7ca232058e");
+BLEIntCharacteristic angleCharacteristic("b5178913-9c0c-4a22-ac6e-6f7ca232058e", BLERead | BLENotify);
 
 
 mbed::I2C i2c(P0_31, P0_2);
@@ -77,6 +79,7 @@ void gyroLoop(){
       angle += (ms * zAngle)/1000;
       // give the motors the current angle to calculate distance
       motorHandler.angle = angle;
+      angleCharacteristic.writeValue(int(angle));
     }
   }
 }
@@ -163,8 +166,10 @@ void setup() {
   controlService.addCharacteristic(sensorIR2Characteristic);
   controlService.addCharacteristic(sensorUS1Characteristic);
   controlService.addCharacteristic(sensorUS2Characteristic);
+  navigationService.addCharacteristic(angleCharacteristic);
 
   BLE.addService(controlService);
+  BLE.addService(navigationService);
 
   BLE.advertise();
   BLE.setEventHandler(BLEConnected, connectionHandler);
@@ -212,6 +217,8 @@ void loop() {
 
   // main loop
   while (central.connected()) {
+    Serial.println(motorHandler.xPosition);
+    Serial.println(motorHandler.yPosition);
     BLE.poll();
     delay(1000);
   }
