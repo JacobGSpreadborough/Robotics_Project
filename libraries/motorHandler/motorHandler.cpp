@@ -30,13 +30,13 @@ void MotorHandler::move(double speed, double turn) {
     turn /= 120;
     //-2 for hard left, +2 for hard right
     if(turn == 0) {
-      motorA.move(speed - 0.08);
+      motorA.move(speed - 0.1);
       motorB.move(-(speed));
     } else if(turn > 0) {
-      motorA.move(speed - 0.08);
+      motorA.move(speed - 0.1);
       motorB.move(-(speed - turn));
     } else if(turn < 0) {
-      motorA.move(speed + turn - 0.08);
+      motorA.move(speed + turn - 0.1);
       motorB.move(-speed);
     }
   }
