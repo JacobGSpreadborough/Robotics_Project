@@ -1,19 +1,17 @@
 #include "simpleble/Types.h"
-#include <chrono>
 #include <simpleble/SimpleBLE.h>
 #include <iostream>
-#include <thread>
+
+#define US_0_OFFSET 0
+#define US_1_OFFSET 4
+#define IR_0_OFFSET 8
+#define IR_1_OFFSET 10
 
 // address for my arduino
 SimpleBLE::BluetoothAddress arduinoAddress = "6CFC6917-94B4-03DA-C5BC-9BC05CA2496B";
 SimpleBLE::BluetoothUUID controlUUID = "19b10000-e8f2-537e-4f6c-d104768a1214";
-SimpleBLE::BluetoothAddress directionUUID = "19b10001-e8f2-537e-4f6c-d104768a1214";
-SimpleBLE::BluetoothUUID IRSensor0UUID = "19b10002-e8f2-537e-4f6c-d104768a1214";
-SimpleBLE::BluetoothUUID IRSensor1UUID = "19b10003-e8f2-537e-4f6c-d104768a1214";
-SimpleBLE::BluetoothUUID USSensor0UUID ="19b10004-e8f2-537e-4f6c-d104768a1214";
-SimpleBLE::BluetoothUUID USSensor1UUID =  "19b10005-e8f2-537e-4f6c-d104768a1214"; 
-SimpleBLE::BluetoothUUID navigationUUID =  "b5178912-9c0c-4a22-ac6e-6f7ca232058e";
-SimpleBLE::BluetoothUUID angleUUID = "b5178913-9c0c-4a22-ac6e-6f7ca232058e";
+SimpleBLE::BluetoothUUID directionUUID = "19b10001-e8f2-537e-4f6c-d104768a1214";
+SimpleBLE::BluetoothUUID sensorUUID = "19B10002-E8F2-537E-4F6C-D104768A1214";
 
 // commands for the adruino
 // TODO figure out how to do this better
@@ -31,11 +29,10 @@ enum RobotState {
 	STATE_BACKWARD
 }currentState;
 
-int IRData0 = 0;
-int IRData1 = 0;
+short IRData0 = 0;
+short IRData1 = 0;
 float USData0 = 0;
 float USData1 = 0;
-float angle =0;
 
 int bytesToInt(SimpleBLE::ByteArray bytes, size_t length) {
 		int r =0;
@@ -90,36 +87,25 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Successfully Connected" << std::endl;
 
-	arduino.notify(controlUUID,IRSensor0UUID,[&](SimpleBLE::ByteArray bytes) {
-					IRData0 = bytesToInt(bytes,bytes.size());
-					IRData0 = (IRData0 >> 10) + 2;
-		});
-
-	arduino.notify(controlUUID,IRSensor1UUID,[&](SimpleBLE::ByteArray bytes) {
-					IRData1 = bytesToInt(bytes,bytes.size());
-					IRData1 = (IRData1 >> 10) + 2;
-		});
-
-	arduino.notify(controlUUID,USSensor0UUID,[&](SimpleBLE::ByteArray bytes) {
-					float uSeconds = bytesToInt(bytes,bytes.size());
-					USData0 = (uSeconds*0.0343) / 2;
-		});
-	
-	arduino.notify(controlUUID,USSensor1UUID,[&](SimpleBLE::ByteArray bytes) {
-					float uSeconds = bytesToInt(bytes,bytes.size());
-					USData1 = (uSeconds*0.0343) / 2;
-		});
-	arduino.notify(navigationUUID,angleUUID,[&](SimpleBLE::ByteArray bytes) {
-					angle = float(bytesToInt(bytes,bytes.size()));
+	arduino.notify(controlUUID,sensorUUID,[&](SimpleBLE::ByteArray bytes) {
+					std::cout << "incoming size: " << bytes.size() << std::endl;
+					USData0 = (*(float*)(bytes.data() + US_0_OFFSET));
+					std::cout << USData0 << std::endl;
+					USData1 = (*(float*)(bytes.data() + US_1_OFFSET));
+					std::cout << USData1 << std::endl;
+					IRData0 = (*(short*)(bytes.data() + IR_0_OFFSET));
+					std::cout << IRData0 << std::endl;
+					IRData1 = (*(short*)(bytes.data() + IR_1_OFFSET));
+					std::cout << IRData1 << std::endl;
 		});
 
     while(arduino.is_connected()){
+			
 			system("clear");
 			std::cout << "frontL: " << USData0 << std::endl;
 			std::cout << "frontR: " << USData1 << std::endl;
 			std::cout << "left:   " << IRData0 << std::endl;
 			std::cout << "right:  " << IRData1 << std::endl;
-			std::cout << "angle:  " << angle << std::endl;
 	switch(currentState){
 			case STATE_FORWARD:
 					std::cout << currentState << std::endl;

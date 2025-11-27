@@ -795,11 +795,11 @@ CMakeFiles/arduinoConnect.dir/arduinoConnect.cpp.o: \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/unistd.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/iostream \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/sstream \
+  /usr/local/include/simpleble/SimpleBLE.h \
+  /usr/local/include/simpleble/Config.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/chrono \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__chrono/file_clock.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/forward_list \
-  /usr/local/include/simpleble/SimpleBLE.h \
-  /usr/local/include/simpleble/Config.h \
   /usr/local/include/simpleble/Adapter.h \
   /usr/local/include/simpleble/export.h \
   /usr/local/include/simpleble/Exceptions.h \
@@ -811,7 +811,4 @@ CMakeFiles/arduinoConnect.dir/arduinoConnect.cpp.o: \
   /usr/local/include/simpleble/Descriptor.h \
   /usr/local/include/simpleble/AdapterSafe.h \
   /usr/local/include/simpleble/PeripheralSafe.h \
-  /usr/local/include/simpleble/Utils.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/thread \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__thread/this_thread.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__thread/thread.h
+  /usr/local/include/simpleble/Utils.h

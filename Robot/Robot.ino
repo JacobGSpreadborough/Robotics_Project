@@ -9,16 +9,16 @@
 #define US_DATA_WIDTH 2
 #define IR_SENSOR_THRESHOLD 0
 #define US_SENSOR_THRESHOLD 0
+#define US_1_OFFSET 0
+#define US_2_OFFSET 4
+#define IR_1_OFFSET 8
+#define IR_2_OFFSET 10
 
 BLEService controlService("19B10000-E8F2-537E-4F6C-D104768A1214");
 BLEByteCharacteristic directionCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
-BLEIntCharacteristic sensorIR1Characteristic("19B10002-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
-BLEIntCharacteristic sensorIR2Characteristic("19B10003-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
-BLEIntCharacteristic sensorUS1Characteristic("19B10004-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
-BLEIntCharacteristic sensorUS2Characteristic("19B10005-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify);
-BLEService navigationService("b5178912-9c0c-4a22-ac6e-6f7ca232058e");
-BLEIntCharacteristic angleCharacteristic("b5178913-9c0c-4a22-ac6e-6f7ca232058e", BLERead | BLENotify);
+BLECharacteristic sensorCharacteristic("19B10002-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 16);
 
+unsigned char sensorBuffer[16];
 
 mbed::I2C i2c(P0_31, P0_2);
 mbed::Timer t;
@@ -79,7 +79,6 @@ void gyroLoop(){
       angle += (ms * zAngle)/1000;
       // give the motors the current angle to calculate distance
       motorHandler.angle = angle;
-      angleCharacteristic.writeValue(int(angle));
     }
   }
 }
@@ -93,17 +92,18 @@ void sensorLoop() {
     // long enough for the US sensors to time out
     delay(100);
     if(US_1.changed()) {
-      sensorUS1Characteristic.writeValue(US_1.data);
+      memcpy(sensorBuffer + US_1_OFFSET, &US_1.data, 4);
     }
     if(US_2.changed()) {
-      sensorUS2Characteristic.writeValue(US_2.data);
+      memcpy(sensorBuffer + US_2_OFFSET, &US_2.data, 4);
     }
     if(IR_1.changed()) {
-      sensorIR1Characteristic.writeValue(IR_1.data);
+      memcpy(sensorBuffer + IR_1_OFFSET, &IR_1.data, 2);
     }
     if(IR_2.changed()) {
-      sensorIR2Characteristic.writeValue(IR_2.data);
+      memcpy(sensorBuffer + IR_2_OFFSET, &IR_2.data, 2);
     }
+    sensorCharacteristic.writeValue(sensorBuffer, 16);
   }
 }
 
@@ -162,14 +162,9 @@ void setup() {
   BLE.setLocalName("Spread");
   BLE.setAdvertisedService(controlService);
   controlService.addCharacteristic(directionCharacteristic);
-  controlService.addCharacteristic(sensorIR1Characteristic);
-  controlService.addCharacteristic(sensorIR2Characteristic);
-  controlService.addCharacteristic(sensorUS1Characteristic);
-  controlService.addCharacteristic(sensorUS2Characteristic);
-  navigationService.addCharacteristic(angleCharacteristic);
+  controlService.addCharacteristic(sensorCharacteristic);
 
   BLE.addService(controlService);
-  BLE.addService(navigationService);
 
   BLE.advertise();
   BLE.setEventHandler(BLEConnected, connectionHandler);
@@ -212,13 +207,10 @@ void loop() {
   }
 
   BLEDevice central = BLE.central();
-  BLE.advertise();
   BLE.poll();
 
   // main loop
   while (central.connected()) {
-    Serial.println(motorHandler.xPosition);
-    Serial.println(motorHandler.yPosition);
     BLE.poll();
     delay(1000);
   }
