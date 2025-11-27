@@ -29,6 +29,7 @@ rtos::Thread sensors;
 rtos::Thread control;
 rtos::Thread gyro;
 volatile bool connected = false;
+volatile bool disconnect = false;
 float xAngle,yAngle,zAngle;
 float xAccel,yAccel,zAccel;
 float angle;
@@ -166,45 +167,53 @@ void setup() {
   BLE.addService(controlService);
 
   BLE.advertise();
+  BLE.setEventHandler(BLEConnected, connectionHandler);
+  BLE.setEventHandler(BLEDisconnected, disconnectionHandler);
 
   Serial.println("BLE advertising");
-
-
 }
+// this doesn't work when reconnecting
+void connectionHandler(BLEDevice central) {
+  disconnect = false;
+  connected = true;
+  delay(100);
+  Serial.print("Connected to central: ");
+  Serial.println(central.address());
+  sensors.start(&sensorLoop);
+  Serial.println("sensors started");
+  control.start(&controlLoop);
+  Serial.println("controls started");
+  gyro.start(&gyroLoop);
+  Serial.println("gyro started");
+}
+
+void disconnectionHandler(BLEDevice central) {
+  Serial.print("Disconnected from central: ");
+  Serial.println(central.address());
+  connected = false;
+  disconnect = true;
+}
+
 void loop() {
 
-  BLEDevice central = BLE.central();
-
-  if (central.connected()) {
-    connected = true;
-    Serial.println("Connected to central: ");
-    Serial.println(central.address());
-    sensors.start(&sensorLoop);
-    control.start(&controlLoop);
-    gyro.start(&gyroLoop);
-  } else {
-    // if central was connected before
-    if(connected) {
-      connected = false;
-      Serial.println("Connection lost");
-      // stop the motors and threads
-      sensors.join();
-      Serial.println("Sensors joined");
-      control.join();
-      Serial.println("Controls joined");
-      gyro.join();
-      Serial.println("Gyro joined");
-      motorHandler.move(0,0);
-
-    } else {
-      // allow reconnection
-      BLE.advertise();
-      Serial.println("No connection");
-    }
+  if(disconnect) {
+    sensors.join();
+    Serial.println("sensors joined");
+    control.join();
+    Serial.println("controls joined");
+    gyro.join();
+    Serial.println("gyro joined");
+    motorHandler.move(0,0);
   }
+
+  BLEDevice central = BLE.central();
+  BLE.advertise();
+  BLE.poll();
+
   // main loop
   while (central.connected()) {
     BLE.poll();
     delay(1000);
   }
+
 }

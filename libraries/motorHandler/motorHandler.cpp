@@ -23,11 +23,12 @@ void MotorHandler::move(double speed, double turn) {
     _t.reset();
   } else {
     // convert cm/s into 0...1
-    speed = (speed + 30)/350;
-    // convert deg/s into 0...1
-    double compensation = (1 - speed) * 25;
-    turn = (turn + compensation)/115;
-    // -2 for hard left, +2 for hard right
+    speed /= 300;
+    // compensate for speed
+    turn += 30 * (1 - speed);
+    // convert deg/s into -2...2
+    turn /= 120;
+    //-2 for hard left, +2 for hard right
     if(turn == 0) {
       motorA.move(speed - 0.08);
       motorB.move(-(speed));
