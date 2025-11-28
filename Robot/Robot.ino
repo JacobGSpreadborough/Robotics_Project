@@ -130,10 +130,10 @@ void controlLoop() {
           motorHandler.move(150,0);
           break;
         case 2:
-          motorHandler.move(150,100);
+          motorHandler.move(150,200);
           break;
         case 3:
-          motorHandler.move(150,-100);
+          motorHandler.move(150,-200);
           break;
         case 4:
           motorHandler.move(-100,0);

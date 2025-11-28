@@ -70,19 +70,19 @@ void setup() {
 }
 
 void loop() {
-
+  // wait until it's unplugged
+  while(Serial);
+  delay(500);
   motorHandler.move(200,0);
   delay(1000);
-  Serial.println(motorHandler.xPosition);
-  Serial.println(motorHandler.angle);
-  motorHandler.move(320,90);
+  motorHandler.move(200,90);
   delay(1000);
-  Serial.println(motorHandler.xPosition);
-  Serial.println(motorHandler.angle);
   motorHandler.move(200,0);
-  delay(1000);
-  Serial.println(motorHandler.xPosition);
-  Serial.println(motorHandler.angle);
+  delay(500);
   motorHandler.move(0,0);
+  // wait until it's plugged in
+  while(!Serial);
+  Serial.println(motorHandler.xPosition);
+  Serial.println(motorHandler.angle);
   delay(100000);
 }
