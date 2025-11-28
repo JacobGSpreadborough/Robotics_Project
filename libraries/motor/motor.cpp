@@ -16,7 +16,7 @@ motor::motor(PinName dir, PinName PWM, PinName encoder, bool inverted) :
     distance += _dir? -0.24 : 0.24;
   }
 
-  void motor::move(double speed) {
+  void motor::move(float speed) {
     if(speed < 0) {
       _dir = HIGH;
     }

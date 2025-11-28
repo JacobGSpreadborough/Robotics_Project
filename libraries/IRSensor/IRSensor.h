@@ -11,8 +11,10 @@ class IRSensor {
   public: 
     IRSensor(mbed::I2C &i2c, int id, int threshold);
     char bytes[2];
-	int lastData = 0;
-	int data = 15;
+    // only 2 bytes of data
+    // TODO just send the data buffer rather than converting to short
+	  unsigned short lastData = 0;
+	  unsigned short data = 15;
     bool changed();
     void read();
 };

@@ -11,11 +11,11 @@ class motor {
     bool _inverted;
     void _incrementEncoder();
   public:
-    double distance;
+    float distance;
     long long encoderCount;
     motor(PinName, PinName, PinName, bool);
     void init();
-    void move(double speed);
+    void move(float speed);
 
 };
 

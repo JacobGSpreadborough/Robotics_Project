@@ -6,14 +6,16 @@
 class MotorHandler {
  private:
     mbed::Timer _t;
-    double _prevSpeed;
+    float _prevSpeed;
  public:
     motor motorA, motorB;
     MotorHandler(PinName, PinName, PinName, PinName, PinName, PinName);
-    double xPosition, yPosition, angle;
+    float xPosition = 17;
+    float yPosition = 73;
+    float angle;
     void init();
-    void move(double,double);
-    void location(double);
+    void move(float,float);
+    void location(float);
 };
 
 #endif

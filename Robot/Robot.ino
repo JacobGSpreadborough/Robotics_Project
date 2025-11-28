@@ -13,12 +13,17 @@
 #define US_2_OFFSET 4
 #define IR_1_OFFSET 8
 #define IR_2_OFFSET 10
+#define X_POSITION_OFFSET 0
+#define Y_POSITION_OFFSET 4
+#define ANGLE_OFFSET 8
 
 BLEService controlService("19B10000-E8F2-537E-4F6C-D104768A1214");
 BLEByteCharacteristic directionCharacteristic("19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite);
-BLECharacteristic sensorCharacteristic("19B10002-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 16);
+BLECharacteristic sensorCharacteristic("19B10002-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 12);
+BLECharacteristic positionCharacteristic("19B10003-E8F2-537E-4F6C-D104768A1214", BLERead | BLENotify, 12);
 
-unsigned char sensorBuffer[16];
+unsigned char sensorBuffer[12];
+unsigned char positionBuffer[12];
 
 mbed::I2C i2c(P0_31, P0_2);
 mbed::Timer t;
@@ -33,7 +38,6 @@ rtos::Thread gyro;
 volatile bool connected = false;
 volatile bool disconnect = false;
 float xAngle,yAngle,zAngle;
-float xAccel,yAccel,zAccel;
 float angle;
 float delta;
 
@@ -79,9 +83,16 @@ void gyroLoop(){
       angle += (ms * zAngle)/1000;
       // give the motors the current angle to calculate distance
       motorHandler.angle = angle;
+
     }
+    memcpy(positionBuffer + X_POSITION_OFFSET, &motorHandler.xPosition, 4);
+    memcpy(positionBuffer + Y_POSITION_OFFSET, &motorHandler.yPosition, 4);
+    memcpy(positionBuffer + ANGLE_OFFSET, &angle, 4);
+    positionCharacteristic.writeValue(positionBuffer, 12);
   }
 }
+
+mbed::Timer test;
 
 void sensorLoop() {
   while(connected){
@@ -90,7 +101,7 @@ void sensorLoop() {
     IR_1.read();
     IR_2.read();
     // long enough for the US sensors to time out
-    delay(100);
+    delay(50);
     if(US_1.changed()) {
       memcpy(sensorBuffer + US_1_OFFSET, &US_1.data, 4);
     }
@@ -103,7 +114,7 @@ void sensorLoop() {
     if(IR_2.changed()) {
       memcpy(sensorBuffer + IR_2_OFFSET, &IR_2.data, 2);
     }
-    sensorCharacteristic.writeValue(sensorBuffer, 16);
+    sensorCharacteristic.writeValue(sensorBuffer, 12);
   }
 }
 
@@ -119,10 +130,10 @@ void controlLoop() {
           motorHandler.move(150,0);
           break;
         case 2:
-          motorHandler.move(150,200);
+          motorHandler.move(150,100);
           break;
         case 3:
-          motorHandler.move(150,-200);
+          motorHandler.move(150,-100);
           break;
         case 4:
           motorHandler.move(-100,0);
@@ -136,11 +147,14 @@ void controlLoop() {
 }
 
 void setup() {
+
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
+
   motorHandler.init();
   US_1.init();
   US_2.init();
   Serial.begin(115200);
-  while(!Serial);
   Serial.println("Starting");
 
   if(!IMU.begin()) {
@@ -163,6 +177,7 @@ void setup() {
   BLE.setAdvertisedService(controlService);
   controlService.addCharacteristic(directionCharacteristic);
   controlService.addCharacteristic(sensorCharacteristic);
+  controlService.addCharacteristic(positionCharacteristic);
 
   BLE.addService(controlService);
 
@@ -170,7 +185,11 @@ void setup() {
   BLE.setEventHandler(BLEConnected, connectionHandler);
   BLE.setEventHandler(BLEDisconnected, disconnectionHandler);
 
+
   Serial.println("BLE advertising");
+
+  digitalWrite(LED_BUILTIN, LOW);
+
 }
 // this doesn't work when reconnecting
 void connectionHandler(BLEDevice central) {
@@ -185,6 +204,8 @@ void connectionHandler(BLEDevice central) {
   Serial.println("controls started");
   gyro.start(&gyroLoop);
   Serial.println("gyro started");
+  // set LED high when connected
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void disconnectionHandler(BLEDevice central) {
@@ -192,9 +213,17 @@ void disconnectionHandler(BLEDevice central) {
   Serial.println(central.address());
   connected = false;
   disconnect = true;
+  // set LED low when connected
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 void loop() {
+
+  // flash LED while waiting for connection
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(500);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(500);
 
   if(disconnect) {
     sensors.join();

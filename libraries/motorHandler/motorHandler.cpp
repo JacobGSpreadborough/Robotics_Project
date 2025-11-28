@@ -14,7 +14,7 @@ void MotorHandler::init() {
 }
 // speed should be in mm/s, turn should be in deg/s
 // TODO compensate for the difference between left and right motors
-void MotorHandler::move(double speed, double turn) {
+void MotorHandler::move(float speed, float turn) {
   location(speed);
   if(speed == 0) {
     motorA.move(0);
@@ -42,7 +42,7 @@ void MotorHandler::move(double speed, double turn) {
   }
 }
 
-void MotorHandler::location(double speed){
+void MotorHandler::location(float speed){
   _t.stop();
   long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(_t.elapsed_time()).count();
   // speed * time = distance

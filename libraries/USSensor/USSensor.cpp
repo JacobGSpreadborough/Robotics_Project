@@ -38,6 +38,6 @@ void USSensor::_stopTimer() {
     uSeconds = 0;
   }
   lastData = data;
-  data = uSeconds;
+  data = (float)uSeconds;
   _t.reset();
 }
