@@ -24,20 +24,21 @@ void MotorHandler::move(float speed, float turn) {
   } else {
     // convert cm/s into 0...1
     speed /= 300;
+    float bCalibration =( (0.87 - speed) * 0.01) + 0.1;
     // compensate for speed
     turn += 30 * (1 - speed);
     // convert deg/s into -2...2
     turn /= 120;
     //-2 for hard left, +2 for hard right
     if(turn == 0) {
-      motorA.move(speed - 0.1);
-      motorB.move(-(speed));
+      motorA.move(speed);
+      motorB.move(-(speed + bCalibration));
     } else if(turn > 0) {
-      motorA.move(speed - 0.1);
-      motorB.move(-(speed - turn));
+      motorA.move(speed);
+      motorB.move(-(speed - turn + bCalibration));
     } else if(turn < 0) {
-      motorA.move(speed + turn - 0.1);
-      motorB.move(-speed);
+      motorA.move(speed + turn);
+      motorB.move(-speed + bCalibration);
     }
   }
 }

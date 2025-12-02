@@ -33,13 +33,13 @@ USSensor US_1(P1_14,P0_23,US_SENSOR_THRESHOLD);
 USSensor US_2(P1_14,P1_13,US_SENSOR_THRESHOLD);
 MotorHandler motorHandler(P0_4, P0_27, P1_11, P0_5, P1_2, P1_12);
 rtos::Thread sensors;
-rtos::Thread control;
 rtos::Thread gyro;
 volatile bool connected = false;
 volatile bool disconnect = false;
 float xAngle,yAngle,zAngle;
-float angle;
-float delta;
+float xPosition, yPosition = 0;
+float angle, delta = 0;
+float vA, vB, V = 0;
 
 int bytesToInt(char bytes[2]) {
   return (bytes[0] << 8) + bytes[1];
@@ -71,10 +71,10 @@ void gyroLoop(){
   while(connected) {
     t.reset();
     t.start();
-    delay(100);
+    delay(50);
+    t.stop();
+    long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(t.elapsed_time()).count();
     if(IMU.gyroscopeAvailable()) {
-      t.stop();
-      long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(t.elapsed_time()).count();
 
       IMU.readGyroscope(xAngle,yAngle,zAngle);
       // adjust for the IMU's inaccuracy
@@ -85,8 +85,15 @@ void gyroLoop(){
       motorHandler.angle = angle;
 
     }
-    memcpy(positionBuffer + X_POSITION_OFFSET, &motorHandler.xPosition, 4);
-    memcpy(positionBuffer + Y_POSITION_OFFSET, &motorHandler.yPosition, 4);
+    
+    xPosition += (motorHandler.motorA.distance + motorHandler.motorB.distance)/2 * cos(angle*PI/180);
+    yPosition += (motorHandler.motorA.distance + motorHandler.motorB.distance)/2 * sin(angle*PI/180);
+
+    motorHandler.motorA.distance = 0;
+    motorHandler.motorB.distance = 0;
+
+    memcpy(positionBuffer + X_POSITION_OFFSET, &xPosition, 4);
+    memcpy(positionBuffer + Y_POSITION_OFFSET, &yPosition, 4);
     memcpy(positionBuffer + ANGLE_OFFSET, &angle, 4);
     positionCharacteristic.writeValue(positionBuffer, 12);
   }
@@ -118,22 +125,19 @@ void sensorLoop() {
   }
 }
 
-void controlLoop() {
-  while(connected) {
-    delay(100);
-    if(directionCharacteristic.written()){
-      switch(directionCharacteristic.value()) {
-        case 0:
+void directionCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic) {
+  switch(directionCharacteristic.value()) {
+    case 0:
           motorHandler.move(0,0);
           break;
         case 1:
           motorHandler.move(150,0);
           break;
         case 2:
-          motorHandler.move(150,200);
+          motorHandler.move(150,240);
           break;
         case 3:
-          motorHandler.move(150,-200);
+          motorHandler.move(150,-240);
           break;
         case 4:
           motorHandler.move(-100,0);
@@ -141,8 +145,6 @@ void controlLoop() {
         default:
           motorHandler.move(0,0);
           break;
-      }
-    }
   }
 }
 
@@ -185,6 +187,7 @@ void setup() {
   BLE.setEventHandler(BLEConnected, connectionHandler);
   BLE.setEventHandler(BLEDisconnected, disconnectionHandler);
 
+  directionCharacteristic.setEventHandler(BLEWritten, directionCharacteristicWritten);
 
   Serial.println("BLE advertising");
 
@@ -200,8 +203,6 @@ void connectionHandler(BLEDevice central) {
   Serial.println(central.address());
   sensors.start(&sensorLoop);
   Serial.println("sensors started");
-  control.start(&controlLoop);
-  Serial.println("controls started");
   gyro.start(&gyroLoop);
   Serial.println("gyro started");
   // set LED high when connected
@@ -228,8 +229,6 @@ void loop() {
   if(disconnect) {
     sensors.join();
     Serial.println("sensors joined");
-    control.join();
-    Serial.println("controls joined");
     gyro.join();
     Serial.println("gyro joined");
     motorHandler.move(0,0);

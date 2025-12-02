@@ -6,6 +6,7 @@ motor::motor(PinName dir, PinName PWM, PinName encoder, bool inverted) :
   void motor::init() {
     _PWM.period(0.001f);
     _increment = _inverted ? 1 : -1;
+    _mmPerTick = _inverted ? 0.226 : -0.226;
     _encoder.rise(mbed::callback(this, &motor::_incrementEncoder));
     _encoder.fall(mbed::callback(this, &motor::_incrementEncoder));
   }
@@ -13,7 +14,7 @@ motor::motor(PinName dir, PinName PWM, PinName encoder, bool inverted) :
   void motor::_incrementEncoder() {
     // increment or decrement based on direction
     encoderCount += _dir ? _increment : -_increment;
-    distance += _dir? -0.24 : 0.24;
+    distance += _dir? _mmPerTick : - _mmPerTick;
   }
 
   void motor::move(float speed) {
