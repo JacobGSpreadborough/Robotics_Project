@@ -85,9 +85,9 @@ void gyroLoop(){
       motorHandler.angle = angle;
 
     }
-    
-    xPosition += (motorHandler.motorA.distance + motorHandler.motorB.distance)/2 * cos(angle*PI/180);
-    yPosition += (motorHandler.motorA.distance + motorHandler.motorB.distance)/2 * sin(angle*PI/180);
+    // divide by 10 to get cm instead of mm
+    xPosition += (motorHandler.motorA.distance + motorHandler.motorB.distance)/2 * cos(angle * PI/180) / 10;
+    yPosition += (motorHandler.motorA.distance + motorHandler.motorB.distance)/2 * sin(-angle * PI/180) / 10;
 
     motorHandler.motorA.distance = 0;
     motorHandler.motorB.distance = 0;
@@ -131,16 +131,16 @@ void directionCharacteristicWritten(BLEDevice central, BLECharacteristic charact
           motorHandler.move(0,0);
           break;
         case 1:
-          motorHandler.move(150,0);
+          motorHandler.move(140,0);
           break;
         case 2:
-          motorHandler.move(150,240);
+          motorHandler.move(140,150);
           break;
         case 3:
-          motorHandler.move(150,-240);
+          motorHandler.move(140,-150);
           break;
         case 4:
-          motorHandler.move(-100,0);
+          motorHandler.move(-140,0);
           break;
         default:
           motorHandler.move(0,0);
